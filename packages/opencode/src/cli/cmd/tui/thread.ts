@@ -154,6 +154,17 @@ export const TuiThreadCommand = cmd({
       onExit: async () => {
         await client.call("shutdown", undefined)
       },
+      onOpenWebUI: async () => {
+        if (shouldStartServer) {
+          // Server already running, return the URL
+          return url
+        } else {
+          // Start server on demand using default network options (localhost)
+          const defaultOpts = await resolveNetworkOptions({ port: 0, hostname: "127.0.0.1", mdns: false, cors: [] })
+          const server = await client.call("server", defaultOpts)
+          return server.url
+        }
+      },
     })
 
     setTimeout(() => {
