@@ -1,0 +1,70 @@
+{
+  "name": "opencode-copilot-agent",
+  "displayName": "OpenCode for Copilot",
+  "description": "OpenCode coding agent for GitHub Copilot",
+  "version": "0.1.0",
+  "publisher": "sst-dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anomalyco/opencode"
+  },
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.102.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "enabledApiProposals": [
+    "chatSessionsProvider",
+    "chatProvider"
+  ],
+  "activationEvents": [
+    "onChatParticipant:opencode.copilot"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "chatParticipants": [
+      {
+        "id": "opencode.copilot",
+        "name": "OpenCode",
+        "description": "AI coding agent powered by OpenCode",
+        "isDefault": false
+      }
+    ],
+    "chatSessions": [
+      {
+        "type": "opencode",
+        "label": "OpenCode"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "bun run package",
+    "compile": "bun run check-types && bun run lint && node esbuild.js",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "bun run check-types && bun run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "bun run compile-tests && bun run compile && bun run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "dependencies": {
+    "@opencode-ai/sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.94.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@typescript-eslint/eslint-plugin": "^8.31.1",
+    "@typescript-eslint/parser": "^8.31.1",
+    "eslint": "^9.25.1",
+    "esbuild": "^0.25.3",
+    "typescript": "^5.8.3",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2"
+  }
+}
