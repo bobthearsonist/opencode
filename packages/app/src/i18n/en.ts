@@ -922,6 +922,10 @@ export const dict = {
   "session.delete.confirm": 'Delete session "{{name}}"?',
   "session.delete.button": "Delete session",
 
+  "session.generateTitle.label": "Generate title",
+  "session.generateTitle.success": "Title generated",
+  "session.generateTitle.failed": "Failed to generate title",
+
   "workspace.new": "New workspace",
   "workspace.type.local": "local",
   "workspace.type.sandbox": "sandbox",

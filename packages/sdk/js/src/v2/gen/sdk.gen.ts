@@ -125,6 +125,8 @@ import type {
   SessionDeleteMessageErrors,
   SessionDeleteMessageResponses,
   SessionDeleteResponses,
+  SessionGenerateTitleErrors,
+  SessionGenerateTitleResponses,
   SessionDiffResponses,
   SessionForkResponses,
   SessionGetErrors,
@@ -1816,6 +1818,45 @@ export class Session2 extends HeyApiClient {
     )
     return (options?.client ?? this.client).patch<SessionUpdateResponses, SessionUpdateErrors, ThrowOnError>({
       url: "/session/{sessionID}",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+
+  /**
+   * Generate session title
+   *
+   * Generate a new title for the session using the small model based on the conversation content.
+   */
+  public generateTitle<ThrowOnError extends boolean = false>(
+    parameters: {
+      sessionID: string
+      directory?: string
+      workspace?: string
+      hint?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "sessionID" },
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+            { in: "body", key: "hint" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<SessionGenerateTitleResponses, SessionGenerateTitleErrors, ThrowOnError>({
+      url: "/session/{sessionID}/generate-title",
       ...options,
       ...params,
       headers: {

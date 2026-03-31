@@ -867,6 +867,24 @@ export function MessageTimeline(props: {
                                 >
                                   <DropdownMenu.ItemLabel>{language.t("common.rename")}</DropdownMenu.ItemLabel>
                                 </DropdownMenu.Item>
+                                <DropdownMenu.Item
+                                  onSelect={async () => {
+                                    setTitle("menuOpen", false)
+                                    try {
+                                      await sdk.client.session.generateTitle({ sessionID: id() })
+                                      showToast({
+                                        title: language.t("session.generateTitle.success"),
+                                      })
+                                    } catch (err) {
+                                      showToast({
+                                        title: language.t("session.generateTitle.failed"),
+                                        description: errorMessage(err),
+                                      })
+                                    }
+                                  }}
+                                >
+                                  <DropdownMenu.ItemLabel>{language.t("session.generateTitle.label")}</DropdownMenu.ItemLabel>
+                                </DropdownMenu.Item>
                                 <Show when={shareEnabled()}>
                                   <DropdownMenu.Item
                                     onSelect={() => {

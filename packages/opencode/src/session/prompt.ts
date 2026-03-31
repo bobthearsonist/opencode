@@ -1835,6 +1835,92 @@ export function createStructuredOutputTool(input: {
     },
   })
 }
+
+  /**
+   * Generate a title for a session using the small model.
+   * Can be called at any time to regenerate the title.
+   */
+  export const generateTitle = fn(
+    z.object({
+      sessionID: SessionID.zod,
+      hint: z.string().optional().describe("Optional hint to guide title generation"),
+    }),
+    async (input) => {
+      const session = await Session.get(input.sessionID)
+      if (!session) throw new Error(`Session not found: ${input.sessionID}`)
+
+      const messages = await Session.messages({ sessionID: input.sessionID })
+      if (messages.length === 0) throw new Error("No messages in session to generate title from")
+
+      // Find the model from the most recent user message
+      const lastUserMsg = messages
+        .slice()
+        .reverse()
+        .find((m) => m.info.role === "user")
+      const userInfo = lastUserMsg?.info as MessageV2.User | undefined
+      const providerID = (userInfo?.model.providerID ?? "anthropic") as ProviderID
+      const modelID = (userInfo?.model.modelID ?? "claude-sonnet-4-20250514") as ModelID
+
+      const agent = await Agent.get("title")
+      if (!agent) throw new Error("Title agent not found")
+
+      const model = await iife(async () => {
+        if (agent.model) return await Provider.getModel(agent.model.providerID, agent.model.modelID)
+        return (await Provider.getSmallModel(providerID)) ?? (await Provider.getModel(providerID, modelID))
+      })
+
+      // Build context from conversation - use more messages for better context
+      const contextMessages = messages.slice(0, 10)
+
+      const promptContent = input.hint
+        ? `Generate a title for this conversation. Hint: ${input.hint}\n`
+        : "Generate a title for this conversation:\n"
+
+      const result = await LLM.stream({
+        agent,
+        user: (lastUserMsg?.info ?? messages[0].info) as MessageV2.User,
+        system: [],
+        small: true,
+        tools: {},
+        model,
+        abort: new AbortController().signal,
+        sessionID: input.sessionID,
+        retries: 2,
+        messages: [
+          {
+            role: "user",
+            content: promptContent,
+          },
+          ...(await MessageV2.toModelMessages(contextMessages, model)),
+        ],
+      })
+
+      const text = await result.text.catch((err) => {
+        log.error("failed to generate title", { error: err })
+        throw new Error("Failed to generate title")
+      })
+
+      if (!text) throw new Error("No title generated")
+
+      const cleaned = text
+        .replace(/<think>[\s\S]*?<\/think>\s*/g, "")
+        .split("\n")
+        .map((line) => line.trim())
+        .find((line) => line.length > 0)
+
+      if (!cleaned) throw new Error("Generated title was empty")
+
+      const title = cleaned.length > 100 ? cleaned.substring(0, 97) + "..." : cleaned
+
+      await Session.setTitle({ sessionID: input.sessionID, title }).catch((err) => {
+        if (NotFoundError.isInstance(err)) return
+        throw err
+      })
+
+      return { title }
+    },
+  )
+
 const bashRegex = /!`([^`]+)`/g
 // Match [Image N] as single token, quoted strings, or non-space sequences
 const argsRegex = /(?:\[Image\s+\d+\]|"[^"]*"|'[^']*'|[^\s"']+)/gi

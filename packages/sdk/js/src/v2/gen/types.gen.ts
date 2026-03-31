@@ -3358,6 +3358,44 @@ export type SessionDeleteResponses = {
 
 export type SessionDeleteResponse = SessionDeleteResponses[keyof SessionDeleteResponses]
 
+export type SessionGenerateTitleData = {
+  body?: {
+    hint?: string
+  }
+  path: {
+    sessionID: string
+  }
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/session/{sessionID}/generate-title"
+}
+
+export type SessionGenerateTitleErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type SessionGenerateTitleError = SessionGenerateTitleErrors[keyof SessionGenerateTitleErrors]
+
+export type SessionGenerateTitleResponses = {
+  /**
+   * Successfully generated title
+   */
+  200: {
+    title: string
+  }
+}
+
+export type SessionGenerateTitleResponse = SessionGenerateTitleResponses[keyof SessionGenerateTitleResponses]
+
 export type SessionGetData = {
   body?: never
   path: {

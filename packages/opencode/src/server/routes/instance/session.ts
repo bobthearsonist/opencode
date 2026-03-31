@@ -319,6 +319,53 @@ export const SessionRoutes = lazy(() =>
     )
     // TODO(v2): remove this dedicated route and rely on the normal `/init` command flow.
     .post(
+      "/:sessionID/generate-title",
+      describeRoute({
+        summary: "Generate session title",
+        description:
+          "Generate a new title for the session using the small model based on the conversation content.",
+        operationId: "session.generateTitle",
+        responses: {
+          200: {
+            description: "Successfully generated title",
+            content: {
+              "application/json": {
+                schema: resolver(
+                  z.object({
+                    title: z.string(),
+                  }),
+                ),
+              },
+            },
+          },
+          ...errors(400, 404),
+        },
+      }),
+      validator(
+        "param",
+        z.object({
+          sessionID: z.string().meta({ description: "Session ID" }),
+        }),
+      ),
+      validator(
+        "json",
+        z
+          .object({
+            hint: z.string().optional().meta({ description: "Optional hint to guide title generation" }),
+          })
+          .optional(),
+      ),
+      async (c) => {
+        const sessionID = c.req.valid("param").sessionID
+        const body = c.req.valid("json")
+        const result = await SessionPrompt.generateTitle({
+          sessionID,
+          hint: body?.hint,
+        })
+        return c.json(result)
+      },
+    )
+    .post(
       "/:sessionID/init",
       describeRoute({
         summary: "Initialize session",
