@@ -29,6 +29,3 @@ UPCOMING_CHANGELOG.md
 logs/
 *.bun-build
 tsconfig.tsbuildinfo
-
-# graphify per-repo graph artifacts (built locally, not source-controlled)
-graphify-out/
